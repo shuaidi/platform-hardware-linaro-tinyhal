@@ -294,6 +294,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
     struct tiny_stream_out *out = (struct tiny_stream_out *)stream;
     int ret;
 
+    /* TODO - handle card and device based on config (krtaylor) */
     if (!out->pcm) {
 	LOGV("out_write(%p) opening PCM\n", stream);
 	out->pcm = pcm_open(0, 0, PCM_OUT | PCM_MMAP, &out->config);
@@ -799,7 +800,7 @@ static int adev_config_parse(struct tiny_audio_device *adev)
     int len;
 
     property_get("ro.product.device", property, "tiny_hw");
-    snprintf(file, sizeof(file), "/system/etc/sound/%s", property);
+    snprintf(file, sizeof(file), "/system/etc/sound/%s.xml", property);
 
     LOGV("Reading configuration from %s\n", file);
     f = fopen(file, "r");
@@ -892,6 +893,7 @@ static int adev_open(const hw_module_t* module, const char* name,
 	goto err_mixer;
 
     /* Bootstrap routing */
+    /* TODO - need device set based on config (krtaylor) */
     pthread_mutex_init(&adev->route_lock, NULL);
     adev->mode = AUDIO_MODE_NORMAL;
     adev->devices = AUDIO_DEVICE_OUT_SPEAKER | AUDIO_DEVICE_IN_BUILTIN_MIC;

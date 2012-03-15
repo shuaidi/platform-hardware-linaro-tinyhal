@@ -1,0 +1,75 @@
+<!-- TinyHAL configuration file for Pandaboard -->
+<!-- kurt.taylor@linaro.org -->
+<tinyhal>
+
+   <!-- Initially set everything static -->
+   <path>
+     <!-- # Set SDP device for following cset commands -->
+     <!-- cdev "hw:Panda" -->
+
+     <!-- # ABE playback path through DL1 -->
+     <ctl name="DL1 Mixer Multimedia" val="1"/>
+     <ctl name="Sidetone Mixer Playback" val="1"/>
+     <ctl name="DL1 PDM Switch" val="1"/>
+     <ctl name="DL1 Media Playback Volume" val="120,120"/>
+     <ctl name="SDT DL Volume" val="120"/>
+
+     <!-- # ABE PDM-UL Capture path -->
+     <ctl name="MUX_UL00" val="11"/>
+     <!-- ctl name="MUX_UL01" val="10"-->
+
+     <!-- # TWL6040 playback path -->
+     <ctl name="Headset Left Playback" val="1"/>
+     <ctl name="Headset Right Playback" val="1"/>
+
+     <!-- # TWL6040 Capture Path -->
+     <ctl name="Analog Left Capture Route" val="0"/>
+     <ctl name="Capture Preamplifier Volume" val="2"/>
+   </path>
+
+<device name="speaker">
+   <path name="on">
+     <ctl name="SPK Switch" val="1"/>
+   </path>
+   <path name="off">
+     <ctl name="SPK Switch" val="0"/>
+   </path>
+</device>
+
+<device name="headphone">
+   <path name="on">
+     <ctl name="HP Switch" val="1"/>
+   </path>
+   <path name="off">
+     <ctl name="HP Switch" val="0"/>
+   </path>
+</device>
+
+<device name="earpiece">
+   <path name="on">
+     <ctl name="EP Switch" val="1"/>
+   </path>
+   <path name="off">
+     <ctl name="EP Switch" val="0"/>
+   </path>
+</device>
+
+<device name="builtin-mic">
+  <path name="on">
+     <ctl name="MIXINL IN1L Switch" val="1"/>
+  </path>
+  <path name="off">
+     <ctl name="MIXINL IN1L Switch" val="0"/>
+  </path>
+</device>
+
+<device name="headset">
+  <path name="on">
+     <ctl name="MIXINR IN1R Switch" val="1"/>
+  </path>
+  <path name="off">
+     <ctl name="MIXINR IN1R Switch" val="0"/>
+  </path>
+</device>
+
+</tinyhal>
