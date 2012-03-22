@@ -1,0 +1,31 @@
+
+kurt.taylor@linaro.org
+
+What is it:
+===========
+These files add support for the UCM framework via tinyhal for the targeted Linaro development boards. Tinyhal is a replacement Android HAL for audio. For more information, refer to the project page at: http://opensource.wolfsonmicro.com/content/tinyhal
+
+
+To build:
+=========
+These instructions are for integration into the Linaro Android builds. Refer to the Linaro Android page for more information:
+
+http://wiki.linaro.org/Platform/Android
+
+Copy these files to the build tree locations listed, taking care not to overwrite the originals, if you wish to save them.
+
+1) Copy BoardConfig.mk to:
+device/linaro/pandaboard
+
+2) Copy Android.mk and audio_hw.c to:
+device/linaro/pandaboard/audio
+
+
+Now, after successfully building and using linaro-android-media-create to install the Android images onto your SD card, do these steps:
+
+1) On the SD card, if it doesn't already exist, make the directory:
+system/etc/sound 
+
+2) Copy pandaboard.xml to the directory you just created on the SD card:
+system/etc/sound
+
