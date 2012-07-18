@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2012 Wolfson Microelectronics plc
  * Copyright (C) 2011 The Android Open Source Project
+ * Copyright (C) 2012 Bernhard Rosenkraenzer <Bernhard.Rosenkranzer@linaro.org> (JB port)
  *
  * Liberal inspiration drawn from the AOSP code for Toro.
  *
@@ -39,6 +40,19 @@
 #include <tinyalsa/asoundlib.h>
 #include <audio_utils/resampler.h>
 #include <hardware/audio_effect.h>
+
+#ifndef LOGE
+/* JellyBean or higher */
+#define LOGE ALOGE
+#define LOGI ALOGI
+#define LOGV ALOGV
+#define LOGW ALOGW
+#define APILEVEL 1
+#else
+#define audio_channel_mask_t uint32_t
+#define audio_format_t int
+#define APILEVEL 0
+#endif
 
 struct route_setting
 {
@@ -197,17 +211,17 @@ static size_t out_get_buffer_size(const struct audio_stream *stream)
     return 4096;
 }
 
-static uint32_t out_get_channels(const struct audio_stream *stream)
+static audio_channel_mask_t out_get_channels(const struct audio_stream *stream)
 {
     return AUDIO_CHANNEL_OUT_STEREO;
 }
 
-static int out_get_format(const struct audio_stream *stream)
+static audio_format_t out_get_format(const struct audio_stream *stream)
 {
     return AUDIO_FORMAT_PCM_16_BIT;
 }
 
-static int out_set_format(struct audio_stream *stream, int format)
+static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
     return 0;
 }
@@ -347,17 +361,17 @@ static size_t in_get_buffer_size(const struct audio_stream *stream)
     return 320;
 }
 
-static uint32_t in_get_channels(const struct audio_stream *stream)
+static audio_channel_mask_t in_get_channels(const struct audio_stream *stream)
 {
     return AUDIO_CHANNEL_IN_MONO;
 }
 
-static int in_get_format(const struct audio_stream *stream)
+static audio_format_t in_get_format(const struct audio_stream *stream)
 {
     return AUDIO_FORMAT_PCM_16_BIT;
 }
 
-static int in_set_format(struct audio_stream *stream, int format)
+static int in_set_format(struct audio_stream *stream, audio_format_t format)
 {
     return 0;
 }
@@ -412,10 +426,19 @@ static int in_remove_audio_effect(const struct audio_stream *stream, effect_hand
     return 0;
 }
 
+#if APILEVEL >= 1
+static int adev_open_output_stream(struct audio_hw_device *dev,
+                                   audio_io_handle_t handle,
+                                   audio_devices_t devices,
+                                   audio_output_flags_t flags,
+                                   struct audio_config * config,
+                                   struct audio_stream_out **stream_out)
+#else
 static int adev_open_output_stream(struct audio_hw_device *dev,
                                    uint32_t devices, int *format,
                                    uint32_t *channels, uint32_t *sample_rate,
                                    struct audio_stream_out **stream_out)
+#endif
 {
     struct tiny_audio_device *adev = (struct tiny_audio_device *)dev;
     struct tiny_stream_out *out;
@@ -450,9 +473,15 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     select_devices(adev);
     pthread_mutex_unlock(&adev->route_lock);
 
+#if APILEVEL >= 1
+    config->channel_mask = out_get_channels(&out->stream.common);
+    config->format = out_get_format(&out->stream.common);
+    config->sample_rate = out_get_sample_rate(&out->stream.common);
+#else
     *channels = out_get_channels(&out->stream.common);
     *format = out_get_format(&out->stream.common);
     *sample_rate = out_get_sample_rate(&out->stream.common);
+#endif
 
     /* Should query the driver for parameters and compute defaults
      * from those; should also support configuration from file and
@@ -526,23 +555,40 @@ static int adev_get_mic_mute(const struct audio_hw_device *dev, bool *state)
     return -ENOSYS;
 }
 
+#if APILEVEL >= 1
+static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
+                                         const struct audio_config *config)
+#else
 static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
                                          uint32_t sample_rate, int format,
                                          int channel_count)
+#endif
 {
     return 320;
 }
 
+#if APILEVEL >= 1
+static int adev_open_input_stream(struct audio_hw_device *dev,
+                                  audio_io_handle_t handle,
+                                  audio_devices_t devices,
+                                  struct audio_config *config,
+                                  struct audio_stream_in **stream_in)
+#else
 static int adev_open_input_stream(struct audio_hw_device *dev, uint32_t devices,
                                   int *format, uint32_t *channels,
                                   uint32_t *sample_rate,
                                   audio_in_acoustics_t acoustics,
                                   struct audio_stream_in **stream_in)
+#endif
 {
     struct tiny_audio_device *adev = (struct tiny_audio_device *)dev;
     struct tiny_stream_in *in;
     int ret;
+#if APILEVEL >= 1
+    int channel_count = popcount(config->channel_mask);
+#else
     int channel_count = popcount(*channels);
+#endif
 
     in = calloc(1, sizeof(struct tiny_stream_in));
     if (!in)
